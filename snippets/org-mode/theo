@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: theo
-# key: <theo
-# --
-#+begin_theo
-$0
-#+end_theo

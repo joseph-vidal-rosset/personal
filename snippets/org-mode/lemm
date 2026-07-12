@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: lemm
-# key: <lemm
-# --
-#+begin_lemm
-$0
-#+end_lemm

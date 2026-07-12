@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: conj
-# key: <conj
-# --
-#+begin_conj
-$0
-#+end_conj
