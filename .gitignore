@@ -1,0 +1,29 @@
+# Credentials — never track these, encrypted or not
+.authinfo
+.authinfo*
+!.authinfo.gpg
+*.authinfo.bak
+
+# Byte-compiled Elisp — regenerated automatically, never worth tracking
+*.elc
+
+# Backup and autosave files
+*~
+\#*\#
+.\#*
+*.bak
+
+# undo-tree persistence files
+*.~undo-tree~
+
+# Emacs / Prelude caches
+.cache/
+elpa/
+auto-save-list/
+tramp
+url/
+eshell/history
+eshell/lastdir
+
+# OS cruft
+.DS_Store

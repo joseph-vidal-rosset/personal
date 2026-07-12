@@ -1,0 +1,29 @@
+#+TITLE: 
+#+DATE:
+#+OPTIONS: H:2 toc:nil author:t
+#+LATEX_CLASS: beamer-fr
+#+LANGUAGE:fr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+** 
+:PROPERTIES:
+ :BEAMER_opt: allowframebreaks,label=
+:END:
+bibliography:/home/joseph/Dropbox/Orgzly/reforg.bib
+bibliographystyle:apalike

@@ -1,0 +1,59 @@
+#+LaTeX_CLASS: svjour3
+#+OPTIONS: toc:nil author:nil
+#+LaTeX_HEADER: \usepackage[utf8x]{inputenc}
+#+LaTeX_HEADER: \usepackage[T1]{fontenc}
+#+LaTeX_HEADER: \usepackage{fixltx2e}
+#+LaTeX_HEADER: \usepackage{url}
+#+LaTeX_HEADER: \usepackage{graphicx}
+#+LaTeX_HEADER: \usepackage{color}
+#+LaTeX_HEADER: \usepackage{amsmath}
+#+LaTeX_HEADER: \usepackage{textcomp}
+#+LaTeX_HEADER: \usepackage{marvosym}
+#+LaTeX_HEADER: \usepackage{wasysym}
+#+LaTeX_HEADER: \usepackage{latexsym}
+#+LaTeX_HEADER: \usepackage{amssymb}
+#+LaTeX_HEADER: \usepackage{bussproofs}
+#+LaTeX_HEADER: \usepackage{proof}
+#+LaTeX_HEADER: \usepackage{listings}
+#+LaTeX_HEADER: \usepackage{longtable}
+#+LaTeX_HEADER: \usepackage[numbers,sort&compress]{natbib}
+\smartqed
+#+LaTeX_HEADER: \journalname{Erkenntniss}
+#+LaTeX_HEADER: \titlerunning{}
+#+LaTeX_HEADER: \author{Joseph Vidal-Rosset}
+#+LaTeX_HEADER: \institute{Université de Lorraine - Département de philosophie - Archives Poincaré UMR 7117 CNRS, 91 bd. Libération 54000 Nancy - France \\\email{joseph.vidal-rosset@univ-lorraine.fr}}
+#+LANGUAGE: en
+#+OPTIONS: ':t
+# org takes first text line as a title
+#+TITLE: 
+
+\maketitle
+
+
+\date{Received: date / Accepted: date}
+
+\begin{abstract}
+Your abstract
+
+ Include keywords, PACS and mathematical
+subject classification numbers as needed.
+\keywords{keyword }
+\end{abstract}
+
+* Introduction
+
+
+* Section 
+
+
+* Conclusion
+
+* Acknowledgments
+
+
+bibliographystyle:spbasic
+
+bibliography:~/MEGA/org/reforg.bib
+
+\theendnotes
+

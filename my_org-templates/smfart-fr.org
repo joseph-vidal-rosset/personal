@@ -1,0 +1,17 @@
+#+LaTeX_CLASS: smfart-fr
+#+LaTeX_HEADER: \usepackage{scripttab}
+#+LANGUAGE: fr
+#+OPTIONS: ':t 
+#+OPTIONS: tex:t
+#+OPTIONS: toc:nil
+#+TITLE:
+#+AUTHOR: 
+
+
+
+
+
+
+
+bibliography:/home/joseph/Dropbox/Orgzly/reforg.bib
+bibliographystyle:smfplain

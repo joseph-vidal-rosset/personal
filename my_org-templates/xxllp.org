@@ -1,0 +1,45 @@
+#+LaTeX_CLASS: xxllp
+#+LANGUAGE: en
+#+options: toc:nil
+
+#+BEGIN_EXPORT latex
+\pagestyle{myheadings}\markboth{Joseph  Vidal-Rosset}{Title of the paper}
+
+\LaLPonline{??} \setcounter{page}{1} \thispagestyle{LLPrrobezissn} \label{p}
+
+\AuthorTitle{Joseph Vidal-Rosset}{\uppercase{Title to put in your .tex file}}
+
+\allowdisplaybreaks
+
+\Abstract{Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+Here should be a short abstract. In your .tex file.
+}
+
+\Keywords{the first key word; the second key word; the third key word; so on. In your .tex file.}
+#+END_EXPORT
+
+
+
+
+
+
+
+
+
+
+
+bibliography:/home/joseph/MEGA/org/reforg.bib
+bibliographystyle:apalike
+
+#+BEGIN_EXPORT latex
+\AuthorAdressEmail{Joseph Vidal-Rosset}{Université de Lorraine - Département de philosophie\\
+Archives Poincaré - UMR 7117 du CNRS\\
+91, bd. Libération\\
+54000 Nancy, FRANCE}{joseph.vidal-rosset@univ-lorraine.fr}
+#+END_EXPORT

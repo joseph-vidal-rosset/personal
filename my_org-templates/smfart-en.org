@@ -1,0 +1,24 @@
+#+LaTeX_CLASS: smfart-en
+#+LaTeX_HEADER: \usepackage{scripttab}
+#+LANGUAGE: en
+#+OPTIONS: ':t 
+#+OPTIONS: tex:t
+#+OPTIONS: toc:nil
+#+HTML_MATHJAX: align:"center" mathml:t path:src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML"
+#+TITLE:
+#+AUTHOR: 
+
+
+
+
+
+
+
+
+
+
+
+
+bibliography:/home/joseph/MEGA/org/reforg.bib
+bibliographystyle:apalike
+

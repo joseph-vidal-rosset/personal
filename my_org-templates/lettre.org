@@ -1,0 +1,29 @@
+#+LATEX_CLASS: lettre-koma
+
+
+#+BEGIN_letter: mon destinataire
+
+#+END_letter 
+\begin{letter}{à MON DESTINATAIRE}  
+\def\concname{Objet :~}
+\conc{Objet de la lettre}
+
+
+\pagestyle{plain}
+
+
+\opening{Cher Destinataire}
+
+
+
+\closing{formule au destinataire}
+
+\name{mon nom ou mon prénom}
+
+
+
+bibliography:/home/joseph/MEGA/org/reforg.bib
+bibliographystyle:apalike
+
+\end{letter}
+

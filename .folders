@@ -1,0 +1,10 @@
++trash    "Trash"
++draft    "Drafts"
+
+Proton{
+    %INBOX:"joseph@vidal-rosset.net"/clear@127.0.0.1:11153 "Inbox"
+    %Sent:"joseph@vidal-rosset.net"/clear@127.0.0.1:11153 "Sent"
+    %Drafts:"joseph@vidal-rosset.net"/clear@127.0.0.1:11153 "Drafts"
+    %Trash:"joseph@vidal-rosset.net"/clear@127.0.0.1:11153 "Trash"
+    %Archive:"joseph@vidal-rosset.net"/clear@127.0.0.1:11153 "Archive"
+}
