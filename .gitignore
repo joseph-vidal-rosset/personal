@@ -27,3 +27,7 @@ eshell/lastdir
 
 # OS cruft
 .DS_Store
+
+# Themes/packages installed by direct git clone — not versioned here,
+# fetch from their own upstream repo if needed
+themes/emacs-leuven-theme/

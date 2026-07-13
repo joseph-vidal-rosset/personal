@@ -18,6 +18,10 @@ Elisp, my own decisions.
   MX Linux: session glue, autostart handling, tray detection, and the
   fixes for the usual EXWM rough edges (autostart timing, ghost daemon
   on reboot, sysVinit migration).
+- **`system/`** — the two files that make EXWM appear as a session
+  choice in LightDM, which live outside `~/.emacs.d/personal/` in
+  system directories (`/usr/share/xsessions/`, `/usr/local/bin/`) and
+  therefore need a separate install step — see below.
 - **`publish.el`** — the org-publish pipeline behind my blog at
   [vidal-rosset.net](https://vidal-rosset.net): section pages, date
   stamping, bibliography handling (CSL/org-cite for HTML, org-ref for
@@ -37,6 +41,15 @@ Elisp, my own decisions.
    Prelude put there by default.
 3. Restart Emacs. Prelude will pick up everything in `personal/`
    automatically.
+4. To also get EXWM as a LightDM session choice, install the system
+   files (requires root, since they go outside your home directory):
+   ```sh
+   sudo ./system/install.sh
+   ```
+   This copies `system/xsessions/exwm.desktop` to
+   `/usr/share/xsessions/` and `system/bin/exwm-session` to
+   `/usr/local/bin/`, then makes the script executable. Log out and
+   "EXWM" should appear as a session option in LightDM.
 
 Some pieces assume my own directory layout (Dropbox paths, a
 particular bibliography file, my own EXWM session scripts) and will

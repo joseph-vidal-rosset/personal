@@ -1,0 +1,5 @@
+#!/bin/bash
+export XDG_CURRENT_DESKTOP=XFCE
+dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP
+(sleep 15; dex -a >/dev/null 2>&1) &
+exec emacs --fullscreen
