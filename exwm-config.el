@@ -126,6 +126,6 @@
               (run-at-time "5 sec" nil #'delete-other-windows)))
 
   ;; ── Activer EXWM ──
-  (exwm-enable)
+  (exwm-wm-mode 1)
 
   (message "EXWM chargé avec succès !"))

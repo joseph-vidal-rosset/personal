@@ -77,7 +77,18 @@
 ;; (require 'prelude-go)
 ;(require 'prelude-haskell)
 ;; (require 'prelude-js)
-(require 'prelude-latex)
+
+;; Deferred ~0.3s after startup rather than loaded synchronously
+;; during it: AUCTeX + yasnippet together cost ~700ms. By the time
+;; you actually open a .tex file or trigger a snippet, they're
+;; already loaded in the background — nothing to think about, and
+;; Emacs itself starts noticeably faster.
+(run-with-idle-timer
+ 0.3 nil
+ (lambda ()
+   (require 'prelude-latex)
+   (when (fboundp 'yas-global-mode) (yas-global-mode 1))))
+
 ; (require 'prelude-lisp) ;; Common setup for Lisp-like languages
 ;; (require 'prelude-literate-programming) ;; Setup for Literate Programming
 ;; (require 'prelude-lsp) ;; Base setup for the Language Server Protocol

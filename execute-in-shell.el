@@ -36,22 +36,26 @@
 ; positioned at the next S-expression that begins (has its
 ; left-parenthesis) in column one.
 
-(fset 'execute-in-shell
-   [?\C-f ?\C-r ?\C-q ?\C-j ?( ?\C-f ?\C-  escape ?\C-f escape ?w
-   ?\C-x ?b ?* ?s ?h ?e ?l ?l ?* return escape ?> ?\C-y return ?\C-x
-   ?b return ?\C-s ?\C-q ?\C-j ?( ?\C-a])
+;; Guarded against being loaded twice: ath-setup.el loads this file
+;; explicitly via load-file, and Prelude's own personal/ directory
+;; loop loads every *.el file it finds regardless, including this
+;; one. `provide' alone doesn't stop that second `load' — only an
+;; explicit `featurep' check inside the file's own body does.
+(unless (featurep 'execute-in-shell)
 
-; Type Ctl-/ to run it.  This may not work in all terminal programs
-; when running Emacs at terminal level (emacs -nw); some terminal
-; programs seem not to transmit the proper character code.
-(global-set-key [?\C-/] 'execute-in-shell)
+  (fset 'execute-in-shell
+     [?\C-f ?\C-r ?\C-q ?\C-j ?\( ?\C-f ?\C-  escape ?\C-f escape ?w
+     ?\C-x ?b ?* ?s ?h ?e ?l ?l ?* return escape ?> ?\C-y return ?\C-x
+     ?b return ?\C-s ?\C-q ?\C-j ?\( ?\C-a])
 
-; Alternatively, type Ctl-x a to run it; this works in either
-; full-windows Emacs (such as via X-Windows) or terminal-level Emacs).
-(global-set-key "\C-xa" 'execute-in-shell)
+  ; Type Ctl-/ to run it.  This may not work in all terminal programs
+  ; when running Emacs at terminal level (emacs -nw); some terminal
+  ; programs seem not to transmit the proper character code.
+  (global-set-key [?\C-/] 'execute-in-shell)
 
+  ; Alternatively, type Ctl-x a to run it; this works in either
+  ; full-windows Emacs (such as via X-Windows) or terminal-level Emacs).
+  (global-set-key "\C-xa" 'execute-in-shell)
 
-
-
-(provide 'execute-in-shell)
+  (provide 'execute-in-shell))
 ;;; execute-in-shell.el ends here

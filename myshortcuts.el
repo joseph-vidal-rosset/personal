@@ -33,10 +33,40 @@
   (interactive)
   (org-publish "blog" t))
 
+(defun my-git-push-ssh ()
+  "Push the current branch of the Git repo at or above `default-directory'.
+
+If the 'origin' remote is still set to an HTTPS GitHub URL
+\(requiring a token, easy to expose by accident\), it is switched to
+the equivalent SSH URL \(git@github.com:...\) first. Once your SSH key
+is registered on GitHub, this means the push needs nothing typed —
+no token, no password. Always pushes with '-u origin <branch>', so a
+brand-new branch with no upstream yet still pushes cleanly instead of
+failing with \"no upstream branch\". Output shows in a *git-push*
+buffer."
+  (interactive)
+  (let* ((default-directory (or (vc-root-dir) default-directory))
+         (url (string-trim (shell-command-to-string "git remote get-url origin")))
+         (branch (string-trim (shell-command-to-string "git rev-parse --abbrev-ref HEAD"))))
+    (if (string-prefix-p "https://github.com/" url)
+        (let ((ssh-url (replace-regexp-in-string
+                         "^https://github.com/" "git@github.com:" url)))
+          (shell-command (format "git remote set-url origin %s" ssh-url))
+          (message "origin switched to SSH: %s" ssh-url))
+      (message "origin already non-HTTPS (%s), leaving as is" url))
+    (async-shell-command
+     (format "git push -u origin %s" (shell-quote-argument branch))
+     "*git-push*")))
+
 ;;; Code:
 
 (global-set-key [f1] 'package-list-packages)
-(global-set-key [f2] 'wl)
+(global-set-key [f2]
+                (lambda ()
+                  (interactive)
+                  (unless (featurep 'wl)
+                    (load (expand-file-name "~/.emacs.d/personal/.wl.el")))
+                  (wl)))
 (global-set-key [f3] 'org-latex-preview)
 (global-set-key [f4] 'org-mime-htmlize)
 (global-set-key [f5] 'kill-current-buffer)
@@ -55,6 +85,7 @@
 (define-key my-f11-map "e" 'export-with-class)
 (define-key my-f11-map "c" 'check-tag)
 (define-key my-f11-map "n" 'new-org-file)
+(define-key my-f11-map "g" 'my-git-push-ssh)
 ;; Raccourci clavier F12
 (global-set-key [f12] 'complete-site-rebuild-and-publish)
 
@@ -72,9 +103,12 @@
 ;; C-c C-t  org : done
 
 ;; snippets
-;; snippets — configuration unique (yasnippet déjà chargé par prelude-latex)
+;; snippets — yas-global-mode itself is now activated in a deferred
+;; block from prelude-modules.el (~0.3s after startup, alongside
+;; AUCTeX), so it doesn't block Emacs' startup time. Only the
+;; directory variable needs setting here, synchronously, before that
+;; deferred activation fires.
 (setq yas-snippet-dirs '("~/.emacs.d/snippets/"))
-(yas-global-mode 1)
 
 (global-set-key (kbd "C-c m") (lambda () (interactive) (insert "@@latex:}%@@")))
 

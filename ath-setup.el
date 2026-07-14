@@ -32,8 +32,12 @@
 (add-to-list 'exec-path (expand-file-name "~/athena"))
 
 ;; 2. Chargez le script execute-in-shell
-;; Cela définit la fonction 'execute-in-shell' et la lie à C-/
-(load-file (expand-file-name "~/.emacs.d/personal/execute-in-shell.el"))
+;; Cela définit la fonction 'execute-in-shell' et la lie à C-/.
+;; `require' plutôt que `load-file' : respecte le garde-fou
+;; `featurep' du fichier lui-même, et utilise load-path plutôt
+;; qu'un chemin absolu codé en dur.
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/personal/"))
+(require 'execute-in-shell)
 
 ;; 3. Créez une commande pratique pour lancer Athena
 (defun my-start-athena ()
