@@ -1200,21 +1200,33 @@ pdflatex -> bibtex -> pdflatex -> pdflatex."
 ;; =================================================================
 
 (defun my-blog-slugify (title)
-  "Convert title to slug for filename"
-  (downcase
-   (replace-regexp-in-string
-    "[^a-zA-Z0-9]+" "-"
-    (replace-regexp-in-string "^-\\|-$" "" title))))
+  "Convert TITLE to a slug suitable for a filename.
+Runs of non-alphanumeric characters collapse to a single hyphen, and
+leading or trailing hyphens are stripped afterwards -- so a title ending
+in punctuation no longer yields a trailing dash."
+  (let ((slug (downcase (replace-regexp-in-string "[^a-zA-Z0-9]+" "-" title))))
+    (replace-regexp-in-string "\\`-+\\|-+\\'" "" slug)))
 
 (defun new-org-file (title)
-  "Create new org file with unified tag selection for blog or academic use"
+  "Create new org file with unified tag selection for blog or academic use.
+
+Blog posts land in BLOG-ROOT-DIR/drafts/, which org-publish excludes and
+git ignores.  Move the file up into BLOG-ROOT-DIR when you judge it ready
+for a first publication.  Academic papers are unaffected: they still go
+straight to ACADEMIC-DIR.
+
+The date is asked rather than assumed, defaulting to today.  A draft
+written in August and published in October must carry October's date,
+both in its filename and in its #+DATE: header."
   (interactive "sTitle: ")
   (let* ((slug (my-blog-slugify title))
-         (date (format-time-string "%Y-%m-%d"))
          (tag (completing-read "Choose tag: " '("arg" "code" "prov" "french" "aca" "jar") nil t))
          (is-jar (string= tag "jar"))
          (is-academic (or (string= tag "aca") is-jar))
-         (base-dir (if is-academic academic-dir blog-root-dir))
+         (date (read-string "Date (YYYY-MM-DD): " (format-time-string "%Y-%m-%d")))
+         (base-dir (if is-academic
+                       academic-dir
+                     (concat blog-root-dir "drafts/")))
          (filename (format "%s%s-%s.org" base-dir date slug)))
 
     ;; Ensure target directory exists
@@ -1262,9 +1274,10 @@ pdflatex -> bibtex -> pdflatex -> pdflatex."
     (goto-char (point-min))
     (re-search-forward "^#+TAGS: ")
     (end-of-line)
-    (message "New %s created: %s"
-             (if is-academic "academic paper" "blog post")
-             filename)))
+    (if is-academic
+        (message "New academic paper created: %s" filename)
+      (message "New draft created: %s  --  move it to %s when ready"
+               filename blog-root-dir))))
 
 (defun new-letter (title)
   "Create new letter using KOMA letter class"
