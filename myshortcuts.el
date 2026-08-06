@@ -164,13 +164,13 @@ s'éteint, la fiche peut être retirée."
 (define-key my-f11-map "a" 'org-archive-subtree)
 (define-key my-f11-map "d" 'org-deadline)
 (define-key my-f11-map "e" 'export-with-class)
-(define-key my-f11-map "c" 'check-tag)
+(define-key my-f11-map "c" 'check-article-tags)
 (define-key my-f11-map "n" 'new-org-file)
 (define-key my-f11-map "g" 'my-git-push-ssh)
 ;; Aide-mémoire Wanderlust, déplacé de F6 vers F11 w
 (define-key my-f11-map "w"
             (lambda () (interactive)
-              (find-file "~/Dropbox/emacs_conf/personal/wanderlust-aide-memoire.md")))
+              (find-file "~/.emacs.d/personal/wanderlust-aide-memoire.md")))
 ;; Raccourci clavier F12
 (global-set-key [f12] 'complete-site-rebuild-and-publish)
 
