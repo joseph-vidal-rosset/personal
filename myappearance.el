@@ -226,7 +226,14 @@ et affiche le résultat dans le mini tampon."
 ;(set-face-attribute 'default nil :height 180)
 
 
-;(provide 'visual)
+
+;; Messages d'Emacs : `comme ceci' plutôt que ‘comme ceci’
+(setq text-quoting-style 'grave)
+
+;; Ne pas transformer ' en ’ à la frappe
+(electric-quote-mode -1)
+
+(provide 'visual)
 
 
 
