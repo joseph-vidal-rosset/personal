@@ -72,7 +72,7 @@
               operate-on-number orderless org-bullets org-context
               org-mime org-noter org-ref outorg ox-epub ox-tufte
               page-break-lines pdf-tools projectile proof-general
-              pythonic rainbow-delimiters rainbow-mode simple-httpd
+              pythonic rainbow-delimiters rainbow-mode rg simple-httpd
               smartparens smartrep solarized-gruvbox-theme
               solarized-theme spacemacs-theme super-save sweeprolog
               swiper tangotango-theme tao-theme templatel tuareg

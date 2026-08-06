@@ -37,6 +37,9 @@
 (setq completion-styles '(orderless basic)
       completion-category-overrides '((file (styles partial-completion))))
 
+;; Vertico a besoin des minibuffers récursifs
+(setq enable-recursive-minibuffers t)
+(minibuffer-depth-indicate-mode 1)   ; affiche [2] quand on est imbriqué
 
 (provide 'mycompletion)
 ;;; mycompletion.el ends here
