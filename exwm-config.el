@@ -24,6 +24,7 @@
 
   ;; ── Services propres à la session EXWM ──
   (start-process "xfsettingsd" nil "xfsettingsd")
+  (start-process "xfce4-screensaver" nil "xfce4-screensaver")
   (start-process "xfce4-terminal" nil "xfce4-terminal" "--drop-down")
 
   ;; ── Panel, puis applets quand le tray est réellement prêt ──
@@ -125,6 +126,11 @@
                              (start-process "firefox" nil "firefox")))
               (run-at-time "5 sec" nil #'delete-other-windows)))
 
+   ;; -- char-mode 
+
+  (setq exwm-manage-configurations
+        '(((string= exwm-class-name "Xfce4-terminal") char-mode t)))
+  
   ;; ── Activer EXWM ──
   (exwm-wm-mode 1)
 

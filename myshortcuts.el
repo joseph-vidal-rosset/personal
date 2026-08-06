@@ -58,6 +58,88 @@ buffer."
      (format "git push -u origin %s" (shell-quote-argument branch))
      "*git-push*")))
 
+(defun my-publish-site-rsync ()
+  "Synchronise ~/Dropbox/public_html vers le serveur (équivalent de `pubsync')."
+  (interactive)
+  (let ((default-directory (expand-file-name "~/Dropbox/public_html/")))
+    (async-shell-command
+     "rsync -avz --delete --exclude-from=$HOME/.rsync-exclude-blog ~/Dropbox/public_html/ joseph@vidal-rosset.net:/var/www/html/"
+     "*pubsync*")))
+
+(defun my-backup-to-disk ()
+  "Sauvegarde complète du site sur le disque externe SAUVEGARDE.
+
+Monte le disque s'il ne l'est pas déjà, puis enchaîne deux étapes,
+la seconde n'ayant lieu que si la première réussit :
+
+1. rapatriement de /var/backups/ de la Dedibox vers
+   ~/Sauvegardes/vidal-rosset/ (équivalent de `getbackup') ;
+2. recopie vers le disque externe, en miroir exact grâce à `--delete'.
+
+Le disque est désigné par son étiquette de système de fichiers, non
+par un nom de périphérique : le passage de sdc à sdd selon l'ordre
+de branchement est donc sans effet. Le point de montage est celui
+qu'annonce le système, et non une valeur codée en dur.
+
+Sortie dans le tampon *sauvegarde*."
+  (interactive)
+  (let* ((lien "/dev/disk/by-label/SAUVEGARDE")
+         (dev (and (file-exists-p lien) (file-truename lien)))
+         (mp (lambda ()
+               (let ((s (string-trim
+                         (shell-command-to-string
+                          (concat "lsblk -no MOUNTPOINT "
+                                  (shell-quote-argument (or dev "/dev/null"))
+                                  " 2>/dev/null")))))
+                 (and (not (string-empty-p s)) s)))))
+    (cond
+     ((null dev)
+      (message "Disque SAUVEGARDE introuvable — est-il branché ?"))
+     (t
+      (unless (funcall mp)
+        (message "Montage du disque…")
+        (shell-command-to-string
+         (concat "udisksctl mount -b " (shell-quote-argument dev))))
+      (let ((point (funcall mp)))
+        (if (null point)
+            (message "Échec du montage de %s — sauvegarde annulée." dev)
+          (async-shell-command
+           (concat "rsync -avh joseph@vidal-rosset.net:/var/backups/ "
+                   "~/Sauvegardes/vidal-rosset/ && "
+                   "rsync -avh --delete ~/Sauvegardes/vidal-rosset/ "
+                   (shell-quote-argument (concat point "/vidal-rosset/"))
+                   " && echo '=== Sauvegarde terminée avec succès ==='")
+           "*sauvegarde*")))))))
+
+(defun my-eject-backup-disk ()
+  "Démonte et éteint le disque externe SAUVEGARDE avant débranchement.
+
+Démonte la partition, puis coupe l'alimentation du disque entier —
+ce qui garantit que les tampons d'écriture sont vidés. Le disque est
+désigné par son étiquette, le disque parent étant déduit
+automatiquement : aucun nom de périphérique n'est codé en dur.
+
+Le résultat s'affiche dans le minibuffer ; quand la LED du boîtier
+s'éteint, la fiche peut être retirée."
+  (interactive)
+  (let* ((lien "/dev/disk/by-label/SAUVEGARDE")
+         (dev (and (file-exists-p lien) (file-truename lien))))
+    (if (null dev)
+        (message "Disque SAUVEGARDE introuvable — déjà débranché ?")
+      (let* ((parent (string-trim
+                      (shell-command-to-string
+                       (concat "lsblk -no PKNAME "
+                               (shell-quote-argument dev) " | head -1"))))
+             (disque (if (string-empty-p parent) dev (concat "/dev/" parent)))
+             (sortie (concat
+                      (shell-command-to-string
+                       (concat "udisksctl unmount -b "
+                               (shell-quote-argument dev) " 2>&1"))
+                      (shell-command-to-string
+                       (concat "udisksctl power-off -b "
+                               (shell-quote-argument disque) " 2>&1")))))
+        (message "%s" (string-trim sortie))))))
+
 ;;; Code:
 
 (global-set-key [f1] 'package-list-packages)
@@ -70,11 +152,10 @@ buffer."
 (global-set-key [f3] 'org-latex-preview)
 (global-set-key [f4] 'org-mime-htmlize)
 (global-set-key [f5] 'kill-current-buffer)
-(global-set-key [f6]
-                (lambda () (interactive)
-                  (find-file "~/Dropbox/emacs_conf/personal/wanderlust-aide-memoire.md")))
+(global-set-key [f6] 'my-backup-to-disk)
+(global-set-key [S-f6] 'my-eject-backup-disk)
 (global-set-key [f7] 'org-mime-edit-mail-in-org-mode)
-(global-set-key [f8] 'ediprolog-dwim)
+(global-set-key [f8] 'my-publish-site-rsync)
 (global-set-key [f9] 'org-capture)
 (global-set-key [f10] 'org-schedule)
 (global-unset-key [f11])
@@ -86,6 +167,10 @@ buffer."
 (define-key my-f11-map "c" 'check-tag)
 (define-key my-f11-map "n" 'new-org-file)
 (define-key my-f11-map "g" 'my-git-push-ssh)
+;; Aide-mémoire Wanderlust, déplacé de F6 vers F11 w
+(define-key my-f11-map "w"
+            (lambda () (interactive)
+              (find-file "~/Dropbox/emacs_conf/personal/wanderlust-aide-memoire.md")))
 ;; Raccourci clavier F12
 (global-set-key [f12] 'complete-site-rebuild-and-publish)
 

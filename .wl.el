@@ -57,6 +57,15 @@
 ;; ======================================================================
 ;; CHARGEMENT EXPLICITE DES MODULES ELMO
 ;; ======================================================================
+
+;; Silence le message cosmétique "emh-setup is not found." émis par
+;; mime-setup.el au chargement (module Mew optionnel, non utilisé
+;; ici) — sans effet sur aucun autre message.
+(define-advice message (:around (orig-fun format-string &rest args) suppress-emh-setup-not-found)
+  (unless (and (stringp format-string) (string= format-string "emh-setup is not found."))
+    (apply orig-fun format-string args)))
+
+
 (require 'wl)
 (require 'elmo)
 
