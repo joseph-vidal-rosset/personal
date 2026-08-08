@@ -1755,6 +1755,89 @@ actually contain OLD are visited, and they are saved on the spot."
     (message "%d replacement(s) in %d file(s)." total files)))
 
 
+;; =================================================================
+;; XML SITEMAP FOR SEARCH ENGINES
+;; =================================================================
+;;
+;; Distinct from org-publish's :auto-sitemap (which produces index.org,
+;; the human-readable index).  This writes sitemap.xml, the machine-
+;; readable URL list consumed by Google, Bing, etc.
+;;
+;; <lastmod> is taken from #+UPDATED: when present, otherwise #+DATE:,
+;; otherwise the file's mtime.  Only ISO dates (YYYY-MM-DD) are kept;
+;; anything else falls back to mtime, since a malformed <lastmod>
+;; invalidates the whole sitemap.
+
+(defvar my-blog-site-url "https://vidal-rosset.net"
+  "Canonical base URL of the site, WITHOUT trailing slash.
+Must match exactly the host you want indexed: if the canonical form is
+the bare domain, drop the `www.' here too.  A sitemap listing URLs on a
+host different from the one serving it is rejected by Google.")
+
+(defun jvr--xml-escape (s)
+  "Escape S for inclusion in XML character data."
+  (setq s (replace-regexp-in-string "&" "&amp;" s))
+  (setq s (replace-regexp-in-string "<" "&lt;" s))
+  (setq s (replace-regexp-in-string ">" "&gt;" s))
+  s)
+
+(defun jvr--file-mtime-iso (file)
+  "Return FILE's modification time as YYYY-MM-DD."
+  (format-time-string
+   "%Y-%m-%d"
+   (file-attribute-modification-time (file-attributes file))))
+
+(defun jvr--sitemap-lastmod (file)
+  "Return the ISO date to advertise as <lastmod> for FILE.
+Prefers #+UPDATED:, then #+DATE:, then the file's mtime."
+  (let* ((dates (extract-dates-from-file file))
+         (pub (car dates))
+         (upd (cadr dates))
+         (candidate (or (and upd (not (string-empty-p (string-trim upd)))
+                             (string-trim upd))
+                        (and pub (not (string-empty-p (string-trim pub)))
+                             (string-trim pub))
+                        "")))
+    (if (string-match "\\`\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)" candidate)
+        (match-string 1 candidate)
+      (jvr--file-mtime-iso file))))
+
+(defun jvr-generate-sitemap-xml ()
+  "Write sitemap.xml into `public_html-dir'.
+
+One <url> entry per published Org source, mirroring what org-publish
+actually puts on disk: drafts are skipped, index.org maps to the site
+root rather than to /index.html.  Entries are sorted most-recent-first,
+which has no effect on crawling but makes the file readable."
+  (interactive)
+  (let ((base (directory-file-name my-blog-site-url))
+        (entries '()))
+    (dolist (f (directory-files-recursively blog-root-dir "\\.org\\'"))
+      (let ((rel (file-relative-name f blog-root-dir)))
+        (unless (or (string-prefix-p "drafts/" rel)
+                    (string-match-p "/drafts/" rel))
+          (push (cons (concat (file-name-sans-extension rel) ".html")
+                      (jvr--sitemap-lastmod f))
+                entries))))
+    (setq entries (sort entries (lambda (a b) (string> (cdr a) (cdr b)))))
+    (with-temp-file (expand-file-name "sitemap.xml" public_html-dir)
+      (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+      (insert "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
+      
+      (dolist (e entries)
+        (insert (format "  <url>\n    <loc>%s</loc>\n    <lastmod>%s</lastmod>\n  </url>\n"
+                        (jvr--xml-escape
+                         (if (string= (car e) "index.html")
+                             (concat base "/")
+                           (concat base "/" (car e))))
+                        (cdr e))))
+      (insert "</urlset>\n"))
+    (message "sitemap.xml: %d URL(s) written to %s"
+             (length entries)
+             (expand-file-name "sitemap.xml" public_html-dir))
+    (length entries)))
+
+
 (provide 'publish)
 
 ;;; publish.el ends here
