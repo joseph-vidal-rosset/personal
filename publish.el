@@ -1622,11 +1622,84 @@ last publication are stamped (see that function's criterion)."
   (message "=== END DEBUG ==="))
 
 ;; =================================================================
+;; CERTIFICATE KITS
+;; =================================================================
+;;
+;; One place for the machine-checked companion material of the
+;; articles: proof scripts, Makefiles, verification logs.
+;;
+;;   ~/Dropbox/certificates/<slug>/
+;;
+;; Deliberately OUTSIDE public_html: a kit is not served from
+;; vidal-rosset.net.  Dropbox already gives the working copy and the
+;; off-site mirror, GitHub gives the history and the citable URL, and
+;; a third copy on the Dedibox would add nothing while exposing each
+;; kit's .git directory over HTTP.  Articles therefore link to GitHub,
+;; through the `gh:' abbreviation already defined above:
+;;
+;;   [[gh:efq-kit/blob/main/README.md][the kit]]
+;;
+;; Nothing here touches the publishing pipeline.  The "website"
+;; project walks blog-root-dir for .org files, the XML sitemap walks
+;; the same directory, and F8 rsyncs public_html: a kit is invisible
+;; to all three.
+
+(defvar certificates-dir
+  (file-name-as-directory (concat dropbox-dir "certificates"))
+  "Root of the certificate kits, one subdirectory per article.")
+
+(defun jvr-certificate-dir (slug)
+  "Absolute path of the kit named SLUG."
+  (file-name-as-directory (concat certificates-dir slug)))
+
+(defun jvr-new-certificate-kit (slug)
+  "Create the kit directory SLUG and open it in Dired.
+Writes a README.md stub and initialises a git repository when git is
+available.  Existing directories are never touched."
+  (interactive "sKit slug (e.g. efq-kit): ")
+  (let* ((dir (jvr-certificate-dir slug))
+         (readme (concat dir "README.md"))
+         (fresh (not (file-exists-p dir))))
+    (make-directory dir t)
+    (unless (file-exists-p readme)
+      (with-temp-file readme
+        (insert (format "# %s\n\nMachine-checked companion material.\n\nLinked from the article as `[[gh:%s/blob/main/README.md][...]]`.\n"
+                        slug slug))))
+    (when (and fresh (executable-find "git")
+               (not (file-exists-p (concat dir ".git"))))
+      (let ((default-directory dir))
+        (call-process "git" nil nil nil "init" "-q")))
+    (dired dir)
+    (message "Kit at %s" dir)))
+
+(defun jvr-list-certificate-kits ()
+  "Show every kit, with its file count and whether it is under git."
+  (interactive)
+  (let ((dirs (and (file-directory-p certificates-dir)
+                   (seq-filter #'file-directory-p
+                               (directory-files certificates-dir t
+                                                directory-files-no-dot-files-regexp)))))
+    (with-current-buffer (get-buffer-create "*certificate kits*")
+      (erase-buffer)
+      (if (null dirs)
+          (insert (format "No kit yet under %s\n" certificates-dir))
+        (insert (format "%s\n\n" certificates-dir))
+        (dolist (d (sort dirs #'string<))
+          (insert (format "%-28s  %5d file(s)  %s\n"
+                          (file-name-nondirectory d)
+                          (length (directory-files-recursively d ""))
+                          (if (file-exists-p (expand-file-name ".git" d))
+                              "git" "no git")))))
+      (goto-char (point-min))
+      (display-buffer (current-buffer)))))
+
+;; =================================================================
 ;; INITIALIZATION
 ;; =================================================================
 
 (dolist (dir (list blog-root-dir public_html-dir public_html-csl-dir
                    public_html-css-dir public_html-images-dir public_html-pdf-dir
+                   certificates-dir
                    academic-pdf-dir))
   (unless (file-exists-p dir)
     (make-directory dir t)))
@@ -1650,6 +1723,10 @@ last publication are stamped (see that function's criterion)."
 (message "  M-x create-all-section-pages - Create section pages")
 (message "  M-x complete-site-rebuild-and-publish - Full rebuild")
 (message "  M-x debug-and-republish - Debug and republish")
+(message "=== CERTIFICATE KITS ===")
+(message "  M-x jvr-new-certificate-kit - Create ~/Dropbox/certificates/<slug>/")
+(message "  M-x jvr-list-certificate-kits - List kits, sizes, git status")
+(message "  Link from an article with [[gh:<slug>/blob/main/README.md][label]]")
 (message "=== INTELLIGENT CLASS SELECTION ===")
 (message "  Blog posts → KOMA (simple & universal)")
 (message "  Math-heavy content → SMF (optimal typography)")
@@ -1836,6 +1913,7 @@ which has no effect on crawling but makes the file readable."
              (length entries)
              (expand-file-name "sitemap.xml" public_html-dir))
     (length entries)))
+
 
 
 (provide 'publish)
