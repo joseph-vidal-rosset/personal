@@ -164,7 +164,7 @@ s'éteint, la fiche peut être retirée."
 (global-set-key [f6] 'my-backup-to-disk)
 (global-set-key [S-f6] 'my-eject-backup-disk)
 (global-set-key [f7] 'org-mime-edit-mail-in-org-mode)
-(global-set-key [f8] 'my-publish-site-rsync)
+(global-set-key [f8] 'my-blog-publish-remote)
 (global-set-key [f9] 'org-capture)
 (global-set-key [f10] 'org-schedule)
 
