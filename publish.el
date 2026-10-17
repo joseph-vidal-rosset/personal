@@ -172,17 +172,17 @@
 ;;
 ;; Upgrading: bump both packages together to the same version.
 ;;
-;; `ui/lazy' typesets formulas only as they approach the viewport, which makes
-;; long articles display almost immediately.  Two known trade-offs: the
-;; browser's Ctrl-F will not find text inside formulas that have not been
-;; typeset yet, and printing a long page may output blank formulas in some
-;; browsers.  Drop 'ui/lazy' from the load list to revert.
+;; `ui/lazy' has been dropped from the load list: it typesets formulas only as
+;; they approach the viewport, so the \\label of an equation further down the
+;; page is unknown when an earlier \\eqref is typeset, and the reference comes
+;; out as (???).  For the same reason the startup hook below runs a second
+;; typesetting pass, which resolves references pointing forward.
 
 (defvar my-blog-mathjax-script
   "<script>
 window.MathJax = {
   loader: {
-    load: ['[tex]/bussproofs', '[tex]/color', '[tex]/ams', 'ui/lazy'],
+    load: ['[tex]/bussproofs', '[tex]/color', '[tex]/ams'],
     paths: { fonts: '/mathjax/fonts' }
   },
   tex: {
@@ -194,6 +194,18 @@ window.MathJax = {
   startup: {
     ready() {
       MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(function () {
+        // Second pass: the first one records the \\label of every tagged
+        // equation, the second resolves the \\eqref that point forward --
+        // typically those of an abstract placed before the equations.
+        MathJax.typesetPromise().then(function () {
+          var thread = document.getElementById('isso-thread');
+          if (!thread) return;
+          new MutationObserver(function () {
+            MathJax.typesetPromise([thread]);
+          }).observe(thread, { childList: true, subtree: true });
+        });
+      });
     }
   }
 };
@@ -567,6 +579,58 @@ is an org link of the form [[file:...][title]]."
              (car (extract-dates-from-file full-path)))
         "")))
 
+;; =================================================================
+;; DRAFTS UNDER REVIEW: ONE LIST FOR RSYNC AND FOR THE INDEX PAGES
+;; =================================================================
+;;
+;; ~/.rsync-exclude-blog lists the files that F8 must not send to the
+;; server (articles under anonymous review, for instance).  Two builds of
+;; the index pages (index.org and the section pages):
+;;
+;; - F12 builds the LOCAL site: every article is listed, drafts included,
+;;   for the local Apache preview;
+;; - `my-blog-publish-remote' (F8) first rebuilds the index pages WITHOUT
+;;   the drafts, runs the rsync, and rebuilds them complete once the
+;;   transfer is over, so that the local site is left as it was.
+;;
+;; sitemap.xml (for search engines) never lists the drafts.  To publish a
+;; draft, delete its line from ~/.rsync-exclude-blog, then F12 and F8.
+
+(defvar my-blog-exclude-file (expand-file-name "~/.rsync-exclude-blog")
+  "File of rsync exclude patterns, one per line; also read by the index pages.")
+
+(defvar my-blog-hide-drafts nil
+  "When non-nil, the index pages leave out the drafts.
+Nil for the local site (F12); bound to t by `my-blog-publish-remote' (F8).")
+
+(defun my-blog-exclude-patterns ()
+  "Return the glob patterns of `my-blog-exclude-file' (blank lines and
+comments dropped, trailing slashes removed)."
+  (when (file-readable-p my-blog-exclude-file)
+    (with-temp-buffer
+      (insert-file-contents my-blog-exclude-file)
+      (delq nil
+            (mapcar (lambda (line)
+                      (let ((l (string-trim line)))
+                        (unless (or (string-empty-p l) (string-prefix-p "#" l))
+                          (string-remove-suffix "/" l))))
+                    (split-string (buffer-string) "\n"))))))
+
+(defun my-blog-excluded-p (file)
+  "Non-nil if the index pages must leave FILE out: only when
+`my-blog-hide-drafts' is non-nil (build for the server)."
+  (and my-blog-hide-drafts (my-blog-draft-p file)))
+
+(defun my-blog-draft-p (file)
+  "Non-nil if FILE (an .org source) or its .html output matches a pattern
+of `my-blog-exclude-file'."
+  (let* ((org (file-name-nondirectory file))
+         (html (concat (file-name-sans-extension org) ".html")))
+    (seq-some (lambda (pat)
+                (let ((re (wildcard-to-regexp pat)))
+                  (or (string-match-p re org) (string-match-p re html))))
+              (my-blog-exclude-patterns))))
+
 (defun my-blog-sitemap-with-updates (title list)
   "Generate sitemap with posts organized by sections using tags and update dates,
 with abstract text only (no 'Read more' link)."
@@ -583,7 +647,8 @@ with abstract text only (no 'Read more' link)."
                          (match-string 1 link)))
              (full-path (when file-path
                          (expand-file-name file-path blog-root-dir))))
-        (when (and full-path (file-exists-p full-path))
+        (when (and full-path (file-exists-p full-path)
+                   (not (my-blog-excluded-p full-path)))
           (with-temp-buffer
             (insert-file-contents full-path)
             (goto-char (point-min))
@@ -676,7 +741,8 @@ with abstract text only (no 'Read more' link)."
           (when (and (file-readable-p file)
                      (not (member (file-name-nondirectory file)
                                   '("index.org" "arguments.org" "provers.org"
-                                    "code.org" "french.org" "jvr.org"))))
+                                    "code.org" "french.org" "jvr.org")))
+                     (not (my-blog-excluded-p file)))
             (with-temp-buffer
               (insert-file-contents file)
               (goto-char (point-min))
@@ -1210,7 +1276,7 @@ in punctuation no longer yields a trailing dash."
 (defun new-org-file (title)
   "Create new org file with unified tag selection for blog or academic use.
 
-Blog posts land in BLOG-ROOT-DIR/drafts/, which org-publish excludes and
+Blog posts land in BLOG-ROOT-DIR, which org-publish excludes and
 git ignores.  Move the file up into BLOG-ROOT-DIR when you judge it ready
 for a first publication.  Academic papers are unaffected: they still go
 straight to ACADEMIC-DIR.
@@ -1226,7 +1292,7 @@ both in its filename and in its #+DATE: header."
          (date (read-string "Date (YYYY-MM-DD): " (format-time-string "%Y-%m-%d")))
          (base-dir (if is-academic
                        academic-dir
-                     (concat blog-root-dir "drafts/")))
+                      blog-root-dir))
          (filename (format "%s%s-%s.org" base-dir date slug)))
 
     ;; Ensure target directory exists
@@ -1276,7 +1342,7 @@ both in its filename and in its #+DATE: header."
     (end-of-line)
     (if is-academic
         (message "New academic paper created: %s" filename)
-      (message "New draft created: %s  --  move it to %s when ready"
+      (message "New blog post created: %s  --  move it to %s when ready"
                filename blog-root-dir))))
 
 (defun new-letter (title)
@@ -1514,7 +1580,6 @@ ever called on the disposable export copy made by
          :sitemap-title "Joseph Vidal-Rosset - Philosophy, Logic & Emacs"
          :sitemap-function my-blog-sitemap-with-updates
          :sitemap-sort-files anti-chronologically
-         :exclude "drafts/.*"
          :language "en")
 
         ;; Note: Images, CSS, PDF are directly in public_html/ subdirectories
@@ -1892,7 +1957,8 @@ which has no effect on crawling but makes the file readable."
     (dolist (f (directory-files-recursively blog-root-dir "\\.org\\'"))
       (let ((rel (file-relative-name f blog-root-dir)))
         (unless (or (string-prefix-p "drafts/" rel)
-                    (string-match-p "/drafts/" rel))
+                    (string-match-p "/drafts/" rel)
+                    (my-blog-draft-p f))
           (push (cons (concat (file-name-sans-extension rel) ".html")
                       (jvr--sitemap-lastmod f))
                 entries))))
@@ -1915,6 +1981,45 @@ which has no effect on crawling but makes the file readable."
     (length entries)))
 
 
+
+;; =================================================================
+;; F8: PUBLISH TO THE SERVER WITHOUT THE DRAFTS
+;; =================================================================
+
+(defun my-blog-regenerate-index-pages ()
+  "Rebuild index.org and the section pages and export them to HTML,
+with or without the drafts according to `my-blog-hide-drafts'."
+  (let ((project (assoc "website-content" org-publish-project-alist))
+        (org-publish-use-timestamps-flag nil))
+    (org-publish-initialize-cache "website-content")
+    (create-all-section-pages)
+    (org-publish-sitemap project "index.org")
+    (dolist (f '("index.org" "arguments.org" "provers.org" "code.org" "french.org"))
+      (let ((path (expand-file-name f blog-root-dir)))
+        (when (file-exists-p path)
+          (org-publish-file path project t))))
+    (org-publish-write-cache-file)))
+
+(defun my-blog-publish-remote ()
+  "Publish to the server (F8) without the drafts of ~/.rsync-exclude-blog.
+The index pages are rebuilt without them, `my-publish-site-rsync' sends
+the site, and the index pages are rebuilt complete when rsync is over."
+  (interactive)
+  (let ((my-blog-hide-drafts t))
+    (my-blog-regenerate-index-pages))
+  (my-publish-site-rsync)
+  (let ((proc (get-buffer-process "*pubsync*")))
+    (if (not proc)
+        (progn (my-blog-regenerate-index-pages)
+               (message "Index pages restored for the local site."))
+      (let ((old (process-sentinel proc)))
+        (set-process-sentinel
+         proc
+         (lambda (p event)
+           (when old (funcall old p event))
+           (when (memq (process-status p) '(exit signal))
+             (my-blog-regenerate-index-pages)
+             (message "rsync done; index pages restored for the local site."))))))))
 
 (provide 'publish)
 

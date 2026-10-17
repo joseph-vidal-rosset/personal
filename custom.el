@@ -39,7 +39,8 @@
      "f3781be0be23cc71c89b317489e07a4ad3e885f84c0a618692b53bbd69e60843"
      default))
  '(org-agenda-files
-   '("~/Dropbox/org/blog/2026-06-28-reply-to-epictetus.org"
+   '("/home/joseph/Dropbox/org/blog/2026-09-19-prior-against-prior.org"
+     "/home/joseph/Dropbox/org/blog/2026-06-28-reply-to-epictetus.org"
      "/home/joseph/Dropbox/org/blog/2026-05-01-core-logic-is-not-paraconsistent.org"
      "/home/joseph/Dropbox/org/blog/2025-11-17-swi-tinker-for-swi-prolog-provers.org"
      "/home/joseph/Dropbox/tex/2025-08-23-core-contradictions.org"

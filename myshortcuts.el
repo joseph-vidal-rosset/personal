@@ -69,12 +69,19 @@ buffer."
 (defun my-backup-to-disk ()
   "Sauvegarde complète du site sur le disque externe SAUVEGARDE.
 
-Monte le disque s'il ne l'est pas déjà, puis enchaîne deux étapes,
-la seconde n'ayant lieu que si la première réussit :
+Monte le disque s'il ne l'est pas déjà, puis enchaîne quatre étapes,
+chacune n'ayant lieu que si la précédente réussit :
 
 1. rapatriement de /var/backups/ de la Dedibox vers
    ~/Sauvegardes/vidal-rosset/ (équivalent de `getbackup') ;
-2. recopie vers le disque externe, en miroir exact grâce à `--delete'.
+2. élagage des archives hebdomadaires par ~/bin/purge-sauvegardes.sh :
+   tout est gardé sur 120 jours, puis une archive par mois jusqu'à un
+   an, rien au-delà. La fenêtre de 120 jours couvre celle que la
+   Dedibox conserve elle-même, faute de quoi le premier rsync
+   retéléchargerait chaque semaine ce que la purge vient d'effacer ;
+3. recopie vers le disque externe, en miroir exact grâce à `--delete',
+   ce qui répercute la purge sur le disque ;
+4. affichage de la place restante, tant que le disque est monté.
 
 Le disque est désigné par son étiquette de système de fichiers, non
 par un nom de périphérique : le passage de sdc à sdd selon l'ordre
@@ -106,8 +113,10 @@ Sortie dans le tampon *sauvegarde*."
           (async-shell-command
            (concat "rsync -avh joseph@vidal-rosset.net:/var/backups/ "
                    "~/Sauvegardes/vidal-rosset/ && "
+                   "$HOME/bin/purge-sauvegardes.sh && "
                    "rsync -avh --delete ~/Sauvegardes/vidal-rosset/ "
                    (shell-quote-argument (concat point "/vidal-rosset/"))
+                   " && df -h " (shell-quote-argument point) " | tail -1"
                    " && echo '=== Sauvegarde terminée avec succès ==='")
            "*sauvegarde*")))))))
 
@@ -158,6 +167,10 @@ s'éteint, la fiche peut être retirée."
 (global-set-key [f8] 'my-publish-site-rsync)
 (global-set-key [f9] 'org-capture)
 (global-set-key [f10] 'org-schedule)
+
+(when (boundp 'exwm-input-prefix-keys)
+  (add-to-list 'exwm-input-prefix-keys 'f11))
+
 (global-unset-key [f11])
 (define-prefix-command 'my-f11-map)
 (global-set-key [f11] 'my-f11-map)
@@ -167,6 +180,8 @@ s'éteint, la fiche peut être retirée."
 (define-key my-f11-map "c" 'check-article-tags)
 (define-key my-f11-map "n" 'new-org-file)
 (define-key my-f11-map "g" 'my-git-push-ssh)
+(define-key my-f11-map "r" #'jvr/rygel-restart)
+(define-key my-f11-map "s" #'jvr/rygel-stop)
 ;; Aide-mémoire Wanderlust, déplacé de F6 vers F11 w
 (define-key my-f11-map "w"
             (lambda () (interactive)

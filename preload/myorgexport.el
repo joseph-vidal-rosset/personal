@@ -59,7 +59,7 @@
 	("" "siunitx" nil)
 	("" "lmodern" nil)
 	("T1" "fontenc" t)
-	("" "natbib" t)
+	;("" "natbib" t)
 	("" "graphicx" t)
 	("" "etex" t)
 	("" "xcolor" t)
@@ -83,7 +83,8 @@
 					;("" "fourier" t)
 					;("" "smfenum" t)
 					;("" "smfthm" t)
-        ("linktocpage,pdfstartview=FitH,colorlinks,linkcolor=blue,anchorcolor=blue,citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue" "hyperref" nil)
+        ("" "hyperref" nil)
+        "\\hypersetup{linktocpage,pdfstartview=FitH,colorlinks,linkcolor=blue,anchorcolor=blue,citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue}"
 	)
       )
 
@@ -91,7 +92,7 @@
 (setq org-latex-packages-alist
       '(("utf8" "inputenc" t)
 	("" "siunitx" nil)
-	("" "natbib" t)
+	;("" "natbib" t)
 	("" "lmodern" nil)
 	("T1" "fontenc" t)
 	("" "graphicx" t)
